@@ -1,0 +1,15 @@
+[package]
+name = "rwm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cc = "1.2.50"
+csscolorparser = "0.8.1"
+libc = "0.2.178"
+thiserror = "2.0.17"
+x11 = { version = "2.21.0", features = ["xlib", "xinerama"] }
+x11rb = "0.13.2"
+
+[package.metadata]
+rustc-link-lib = ["X11"]
