@@ -1,0 +1,20 @@
+:PROPERTIES:
+:CATEGORY: rwm
+:END:
+
+* DONE refactor all codebase and separate logic in multiple files.
+CLOSED: [2025-12-26 Fri 15:53]
+* TODO implement windows movement
+     1. [X] per monitor.
+     2. [ ] local
+* DONE implement support for multiple modifiers.
+CLOSED: [2025-12-26 Fri 21:01]
+* TODO config.rs should have all the current options (gaps, autostart, default apps, etc...)
+* TODO implement monacle togleable layout.
+
+* TODO give support for floating windows like polybar.
+
+* TODO *HARD* implement own modeline with this modules:
+    1. [ ] datetime
+    2. [ ] window title
+* TODO *HARD* implement own which key viewer with input support
