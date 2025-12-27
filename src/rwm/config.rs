@@ -1,6 +1,23 @@
 use x11::keysym::{XK_Return, XK_c, XK_comma, XK_d, XK_j, XK_k, XK_period, XK_q};
 use x11::xlib::{Mod1Mask, ShiftMask};
 
+#[allow(dead_code)]
+pub enum Color {
+    Primary,
+    Secondary,
+    Error,
+}
+
+impl Color {
+    pub fn hex(self) -> &'static str {
+        match self {
+            Color::Primary => "#00ff00",
+            Color::Secondary => "#888888",
+            Color::Error => "#ff5555",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
     OpenLauncher,
@@ -78,3 +95,37 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
 ];
 
 pub const BORDER_WIDTH: u32 = 1;
+pub const GAPS: u32 = 4;
+
+pub struct AppCommand {
+    pub program: &'static str,
+    pub args: &'static [&'static str],
+}
+
+pub const TERMINAL: AppCommand = AppCommand {
+    program: "xterm",
+    args: &[],
+};
+
+pub const LAUNCHER: AppCommand = AppCommand {
+    program: "rofi",
+    args: &["-show", "drun"],
+};
+
+pub const AUTO_START: &[AppCommand] = &[
+    AppCommand {
+        program: "feh",
+        args: &[
+            "--bg-scale",
+            "/home/doom/Pictures/Wallpapers/Gnu_wallpaper.png",
+        ],
+    },
+    AppCommand {
+        program: "sh",
+        args: &["/home/doom/.screenlayout/dual.sh"],
+    },
+    AppCommand {
+        program: "emacs",
+        args: &["--daemon"],
+    },
+];

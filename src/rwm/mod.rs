@@ -6,9 +6,10 @@ pub mod layouts;
 pub mod monitors;
 pub mod utils;
 pub mod window;
+pub mod apps;
 
 pub use core::MiniWM;
 pub use window::Window;
 pub use error::MiniWMError;
 pub use config::{BORDER_WIDTH, KEY_BINDINGS, Action};
-pub use utils::get_pixel_from_color;
+pub use utils::{get_pixel_from_color, spawn};

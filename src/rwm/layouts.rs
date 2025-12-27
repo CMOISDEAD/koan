@@ -1,4 +1,6 @@
-use crate::rwm::{BORDER_WIDTH, MiniWMError, Window, MiniWM};
+use crate::rwm::{BORDER_WIDTH, MiniWM, MiniWMError, Window};
+
+use super::config::GAPS;
 
 impl MiniWM {
     pub fn layout(&mut self) -> Result<(), MiniWMError> {
@@ -28,10 +30,14 @@ impl MiniWM {
                 } else {
                     win_width
                 };
-                let final_w = (width as u32).saturating_sub(BORDER_WIDTH * 2);
-                let final_h = (mon.height as u32).saturating_sub(BORDER_WIDTH * 2);
 
-                self.move_window(window, current_x, mon.y);
+                // FIXME: this gaps arent working as expected...
+                let start_w = (current_x).saturating_add((GAPS) as i32);
+                let start_h = (mon.y).saturating_add((GAPS) as i32);
+                let final_w = (width as u32).saturating_sub((BORDER_WIDTH + GAPS) * 2);
+                let final_h = (mon.height as u32).saturating_sub((BORDER_WIDTH + GAPS) * 2);
+
+                self.move_window(window, start_w, start_h);
                 self.resize_window(window, final_w, final_h);
 
                 current_x += width;

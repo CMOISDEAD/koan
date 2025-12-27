@@ -1,11 +1,21 @@
 use x11::xlib;
 
-use crate::rwm::{MiniWM, MiniWMError, BORDER_WIDTH, get_pixel_from_color};
+use crate::rwm::{BORDER_WIDTH, MiniWM, MiniWMError, get_pixel_from_color};
+
+use super::config::Color;
 
 pub type Window = u64;
 
 impl MiniWM {
     pub fn manage_window(&mut self, win: Window) -> Result<(), MiniWMError> {
+        unsafe {
+            let mut transient_for: xlib::Window = 0;
+            if xlib::XGetTransientForHint(self.display, win, &mut transient_for) != 0 {
+                xlib::XMapRaised(self.display, win);
+                // TODO: center this kind of windows
+                return Ok(());
+            }
+        }
         self.windows.insert(win);
 
         self.window_monitors.insert(win, self.current_monitor);
@@ -33,7 +43,7 @@ impl MiniWM {
     pub fn focus_window(&mut self, window: Window) {
         if let Some(old_win) = self.focused {
             if old_win != window {
-                self.set_border_color(old_win, "#888888");
+                self.set_border_color(old_win, Color::Secondary.hex());
             }
         }
 
@@ -53,7 +63,7 @@ impl MiniWM {
             xlib::XRaiseWindow(self.display, window);
         }
 
-        self.set_border_color(window, "#00ff00");
+        self.set_border_color(window, Color::Primary.hex());
     }
 
     pub fn move_window(&self, window: Window, x: i32, y: i32) {
@@ -113,7 +123,7 @@ impl MiniWM {
         }
     }
 
-    pub fn send_delete(&mut self, window: Window) {
+    pub fn send_delete(&mut self, window: Window) -> Result<(), MiniWMError> {
         unsafe {
             let mut client_ev = xlib::XClientMessageEvent {
                 type_: xlib::ClientMessage,
@@ -130,6 +140,7 @@ impl MiniWM {
             let mut event: xlib::XEvent = client_ev.into();
             xlib::XSendEvent(self.display, window, 0, xlib::NoEventMask, &mut event);
             xlib::XFlush(self.display);
+            Ok(())
         }
     }
 }

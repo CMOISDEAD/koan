@@ -9,7 +9,8 @@ CLOSED: [2025-12-26 Fri 15:53]
      2. [ ] local
 * DONE implement support for multiple modifiers.
 CLOSED: [2025-12-26 Fri 21:01]
-* TODO config.rs should have all the current options (gaps, autostart, default apps, etc...)
+* DONE config.rs should have all the current options (gaps, autostart, default apps, etc...)
+CLOSED: [2025-12-27 Sat 00:04]
 * TODO implement monacle togleable layout.
 
 * TODO give support for floating windows like polybar.

@@ -7,6 +7,14 @@ use std::mem::zeroed;
 use std::ptr::null;
 use x11::xlib;
 
+extern "C" fn x_error_handler(_: *mut xlib::Display, ev: *mut xlib::XErrorEvent) -> i32 {
+    let e = unsafe { *ev };
+    if e.error_code == xlib::BadWindow || (e.error_code == 8 && e.request_code == 42) {
+        return 0;
+    }
+    0
+}
+
 pub struct MiniWM {
     pub monitors: Vec<Monitor>,
     pub current_monitor: usize,
@@ -29,6 +37,9 @@ impl MiniWM {
             if display.is_null() {
                 return Err(MiniWMError::DisplayNotFound);
             }
+
+            xlib::XSetErrorHandler(Some(x_error_handler));
+
             let wm_protocols = xlib::XInternAtom(display, "WM_PROTOCOLS\0".as_ptr() as *const _, 0);
             let wm_delete =
                 xlib::XInternAtom(display, "WM_DELETE_WINDOW\0".as_ptr() as *const _, 0);
@@ -60,11 +71,11 @@ impl MiniWM {
             );
 
             self.update_monitors();
+            self.exec_autostart();
 
             xlib::XUngrabKey(self.display, xlib::AnyKey, xlib::AnyModifier, root);
 
             for binding in KEY_BINDINGS {
-                println!("Grab Key: {:?}", binding);
                 let keycode = xlib::XKeysymToKeycode(self.display, binding.keysym as u64);
                 let status = xlib::XGrabKey(
                     self.display,

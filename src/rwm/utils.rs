@@ -1,5 +1,7 @@
+use crate::rwm::config::AppCommand;
 use csscolorparser;
 use std::mem::zeroed;
+use std::process::Command;
 use x11::xlib;
 
 pub fn get_pixel_from_color(display: *mut xlib::Display, color_str: &str) -> u64 {
@@ -24,4 +26,11 @@ pub fn get_pixel_from_color(display: *mut xlib::Display, color_str: &str) -> u64
         }
     }
     xcolor.pixel as u64
+}
+
+pub fn spawn(cmd: &AppCommand) {
+    Command::new(cmd.program)
+        .args(cmd.args)
+        .spawn()
+        .expect("failed to spawn command");
 }
