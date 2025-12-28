@@ -1,5 +1,6 @@
-use x11::keysym::{XK_Return, XK_c, XK_comma, XK_d, XK_j, XK_k, XK_period, XK_q};
-use x11::xlib::{Mod1Mask, ShiftMask};
+use super::modeline::{Module, ModuleType};
+use x11::keysym::{XK_Return, XK_Tab, XK_c, XK_comma, XK_d, XK_j, XK_k, XK_period, XK_q};
+use x11::xlib::{ControlMask, Mod1Mask, ShiftMask};
 
 #[allow(dead_code)]
 pub enum Color {
@@ -20,6 +21,7 @@ impl Color {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Action {
+    SwitchLayout,
     OpenLauncher,
     OpenTerminal,
     QuitWM,
@@ -27,6 +29,10 @@ pub enum Action {
     FocusPrev,
     MonitorNext,
     MonitorPrev,
+    SwapWindowNext,
+    SwapWindowPrev,
+    IcreaseSize,
+    DecreaseSize,
     MoveWindowToNextMonitor,
     MoveWindowToPrevMonitor,
     CloseWindow,
@@ -42,6 +48,11 @@ pub struct KeyBinding {
 const MOD_KEY: u32 = Mod1Mask;
 
 pub const KEY_BINDINGS: &[KeyBinding] = &[
+    KeyBinding {
+        keysym: XK_Tab,
+        modifiers: (MOD_KEY | ControlMask) as u32,
+        action: Action::SwitchLayout,
+    },
     KeyBinding {
         keysym: XK_Return,
         modifiers: MOD_KEY as u32,
@@ -61,6 +72,26 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
         keysym: XK_k,
         modifiers: MOD_KEY as u32,
         action: Action::FocusPrev,
+    },
+    KeyBinding {
+        keysym: XK_j,
+        modifiers: (MOD_KEY | ShiftMask) as u32,
+        action: Action::SwapWindowNext,
+    },
+    KeyBinding {
+        keysym: XK_k,
+        modifiers: (MOD_KEY | ShiftMask) as u32,
+        action: Action::SwapWindowPrev,
+    },
+    KeyBinding {
+        keysym: XK_j,
+        modifiers: (MOD_KEY | ControlMask) as u32,
+        action: Action::IcreaseSize,
+    },
+    KeyBinding {
+        keysym: XK_k,
+        modifiers: (MOD_KEY | ControlMask) as u32,
+        action: Action::DecreaseSize,
     },
     KeyBinding {
         keysym: XK_comma,
@@ -94,6 +125,8 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
     },
 ];
 
+pub const MODELINE_UPDATE_TIME: u64 = 5;
+pub const MODELINE_HEIGHT: u32 = 10;
 pub const BORDER_WIDTH: u32 = 1;
 pub const GAPS: u32 = 4;
 
@@ -103,7 +136,7 @@ pub struct AppCommand {
 }
 
 pub const TERMINAL: AppCommand = AppCommand {
-    program: "xterm",
+    program: "alacritty",
     args: &[],
 };
 
@@ -115,17 +148,23 @@ pub const LAUNCHER: AppCommand = AppCommand {
 pub const AUTO_START: &[AppCommand] = &[
     AppCommand {
         program: "feh",
-        args: &[
-            "--bg-scale",
-            "/home/doom/Pictures/Wallpapers/Gnu_wallpaper.png",
-        ],
+        args: &["--bg-max", "/home/doom/Pictures/Wallpapers/Gnu_Koan.png"],
     },
     AppCommand {
         program: "sh",
         args: &["/home/doom/.screenlayout/dual.sh"],
     },
-    AppCommand {
-        program: "emacs",
-        args: &["--daemon"],
+    // AppCommand {
+    //     program: "emacs",
+    //     args: &["--daemon"],
+    // },
+];
+
+pub static MODULES: &[Module] = &[
+    Module {
+        kind: ModuleType::WindowTitle
+    },
+    Module {
+        kind: ModuleType::Clock,
     },
 ];

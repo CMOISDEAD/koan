@@ -1,21 +1,27 @@
 :PROPERTIES:
-:CATEGORY: rwm
+:CATEGORY: koan
 :END:
 
+* TODO remove focus on mouse hover behavior.
+* DONE center transient windows.
+CLOSED: [2025-12-27 Sat 13:59]
 * DONE refactor all codebase and separate logic in multiple files.
 CLOSED: [2025-12-26 Fri 15:53]
-* TODO implement windows movement
+* TODO implement windows movement.
      1. [X] per monitor.
-     2. [ ] local
+     2. [X] local.
+     3. [ ] center cursor on middle of the window.
 * DONE implement support for multiple modifiers.
 CLOSED: [2025-12-26 Fri 21:01]
-* DONE config.rs should have all the current options (gaps, autostart, default apps, etc...)
+* DONE config.rs should have all the current options (gaps, autostart, default apps, etc...).
 CLOSED: [2025-12-27 Sat 00:04]
-* TODO implement monacle togleable layout.
+* DONE implement monocle togeble layout.
+CLOSED: [2025-12-28 Sun 02:07]
 
 * TODO give support for floating windows like polybar.
 
-* TODO *HARD* implement own modeline with this modules:
-    1. [ ] datetime
-    2. [ ] window title
-* TODO *HARD* implement own which key viewer with input support
+* DONE *HARD* implement own modeline with this modules:
+CLOSED: [2025-12-28 Sun 02:07]
+    1. [X] datetime.
+    2. [X] window title.
+* TODO *HARD* implement own which key viewer with input support.

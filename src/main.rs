@@ -1,10 +1,10 @@
-mod rwm;
+mod koan;
 
 use std::error::Error;
-use rwm::MiniWM;
+use koan::KoanWM;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut wm = MiniWM::new()?;
+    let mut wm = KoanWM::new()?;
 
     wm.init()?;
 

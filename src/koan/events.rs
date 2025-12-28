@@ -1,7 +1,7 @@
 use x11::xlib;
 
-use crate::rwm::{
-    Action, KEY_BINDINGS, MiniWM, MiniWMError, Window,
+use super::{
+    Action, KEY_BINDINGS, KoanWM, KoanWMError, Window,
     config::{LAUNCHER, TERMINAL},
     utils::spawn,
 };
@@ -10,7 +10,7 @@ use crate::rwm::{
 const RELEVANT_MODIFIERS: u32 =
     xlib::ShiftMask | xlib::ControlMask | xlib::Mod1Mask | xlib::Mod4Mask;
 
-impl MiniWM {
+impl KoanWM {
     pub fn handle_enter_notify(&mut self, ev: xlib::XEnterWindowEvent) {
         let mouse_x = ev.x_root;
         let mouse_y = ev.y_root;
@@ -31,15 +31,15 @@ impl MiniWM {
         }
     }
 
-    pub fn handle_unmap(&mut self, window: Window) -> Result<(), MiniWMError> {
-        // if !self.windows.contains(&window) {
-        //     return Ok(());
-        // }
+    pub fn handle_unmap(&mut self, window: Window) -> Result<(), KoanWMError> {
+        if !self.windows.contains(&window) {
+            return Ok(());
+        }
 
         let was_focused = self.focused == Some(window);
 
         let monitor_idx = self.window_monitors.remove(&window).unwrap_or(0);
-        self.windows.remove(&window);
+        self.windows.retain(|&w| w != window);
 
         if was_focused {
             self.focused = None;
@@ -58,20 +58,23 @@ impl MiniWM {
         Ok(())
     }
 
-    pub fn handle_keypress(&mut self, ke: xlib::XKeyEvent) -> Result<(), MiniWMError> {
+    pub fn handle_keypress(&mut self, ke: xlib::XKeyEvent) -> Result<(), KoanWMError> {
         unsafe {
             let keysym = xlib::XKeycodeToKeysym(self.display, ke.keycode as u8, 0);
             let clean_state = ke.state & RELEVANT_MODIFIERS;
             for binding in KEY_BINDINGS {
                 if keysym == binding.keysym as u64 && clean_state == binding.modifiers {
                     match binding.action {
+                        Action::SwitchLayout => {
+                            self.switch_layout();
+                        }
                         Action::OpenTerminal => {
                             spawn(&TERMINAL);
                         }
                         Action::OpenLauncher => {
                             spawn(&LAUNCHER);
                         }
-                        Action::QuitWM => return Err(MiniWMError::GenericError("Quit".into())),
+                        Action::QuitWM => return Err(KoanWMError::GenericError("Quit".into())),
                         Action::CloseWindow => {
                             if let Some(win) = self.focused {
                                 self.send_delete(win)?;
@@ -90,6 +93,18 @@ impl MiniWM {
                         }
                         Action::MoveWindowToPrevMonitor => {
                             let _ = self.move_window_prev_monitor();
+                        }
+                        Action::SwapWindowNext => {
+                            let _ = self.swap_window(true);
+                        }
+                        Action::SwapWindowPrev => {
+                            let _ = self.swap_window(false);
+                        }
+                        Action::IcreaseSize => {
+                            self.change_split_ratio(true);
+                        }
+                        Action::DecreaseSize => {
+                            self.change_split_ratio(false);
                         }
                     }
                 }

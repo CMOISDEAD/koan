@@ -1,6 +1,6 @@
-use super::{MiniWM, config::AUTO_START, spawn};
+use super::{KoanWM, config::AUTO_START, spawn};
 
-impl MiniWM {
+impl KoanWM {
     pub fn exec_autostart(&mut self) {
         for app in AUTO_START {
             spawn(app);

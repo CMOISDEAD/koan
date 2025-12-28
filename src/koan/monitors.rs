@@ -2,7 +2,7 @@ use std::{mem::zeroed, slice};
 
 use x11::{xinerama, xlib};
 
-use crate::rwm::MiniWM;
+use super::KoanWM;
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
@@ -14,7 +14,7 @@ pub struct Monitor {
     pub index: usize,
 }
 
-impl MiniWM {
+impl KoanWM {
     pub fn update_monitors(&mut self) {
         unsafe {
             let mut num = 0i32;

@@ -1,8 +1,9 @@
-use crate::rwm::config::AppCommand;
 use csscolorparser;
 use std::mem::zeroed;
 use std::process::Command;
 use x11::xlib;
+
+use super::config::AppCommand;
 
 pub fn get_pixel_from_color(display: *mut xlib::Display, color_str: &str) -> u64 {
     let css_color = match csscolorparser::parse(color_str) {

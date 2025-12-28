@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[allow(dead_code)]
 #[derive(Error, Debug)]
-pub enum MiniWMError {
+pub enum KoanWMError {
     #[error("display not found")]
     DisplayNotFound,
     #[error("screen not found")]
