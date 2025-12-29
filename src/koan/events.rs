@@ -1,9 +1,9 @@
 use x11::xlib;
 
 use super::{
-    Action, KEY_BINDINGS, KoanWM, KoanWMError, Window,
-    config::{LAUNCHER, TERMINAL},
+    config::{CURSOR_ENTER_FOCUS, LAUNCHER, TERMINAL},
     utils::spawn,
+    Action, KoanWM, KoanWMError, Window, KEY_BINDINGS,
 };
 
 // ke.state filters
@@ -12,6 +12,10 @@ const RELEVANT_MODIFIERS: u32 =
 
 impl KoanWM {
     pub fn handle_enter_notify(&mut self, ev: xlib::XEnterWindowEvent) {
+        if !CURSOR_ENTER_FOCUS {
+            return;
+        }
+
         let mouse_x = ev.x_root;
         let mouse_y = ev.y_root;
 
@@ -26,32 +30,32 @@ impl KoanWM {
             }
         }
 
-        if self.windows.contains(&ev.window) {
+        if self.clients.iter().any(|c| c.window == ev.window) {
             self.focus_window(ev.window);
         }
     }
 
     pub fn handle_unmap(&mut self, window: Window) -> Result<(), KoanWMError> {
-        if !self.windows.contains(&window) {
-            return Ok(());
-        }
+        let client = match self.clients.iter().find(|c| c.window == window) {
+            Some(c) => c,
+            None => return Ok(()),
+        };
 
-        let was_focused = self.focused == Some(window);
+        let was_focused = self.focused == Some(client.window);
 
-        let monitor_idx = self.window_monitors.remove(&window).unwrap_or(0);
-        self.windows.retain(|&w| w != window);
+        let monitor_idx = self.window_monitors.remove(&client.window).unwrap_or(0);
+        self.clients.retain(|c| c.window != window);
 
         if was_focused {
             self.focused = None;
             let next_focus = self
-                .windows
+                .clients
                 .iter()
-                .filter(|&w| self.window_monitors.get(w) == Some(&monitor_idx))
-                .last()
-                .copied();
+                .filter(|&w| self.window_monitors.get(&w.window) == Some(&monitor_idx))
+                .last();
 
-            if let Some(win) = next_focus {
-                self.focus_window(win);
+            if let Some(client) = next_focus {
+                self.focus_window(client.window);
             }
         }
         self.layout()?;
@@ -100,11 +104,14 @@ impl KoanWM {
                         Action::SwapWindowPrev => {
                             let _ = self.swap_window(false);
                         }
-                        Action::IcreaseSize => {
+                        Action::IncreaseSize => {
                             self.change_split_ratio(true);
                         }
                         Action::DecreaseSize => {
                             self.change_split_ratio(false);
+                        }
+                        Action::ToggleFloat => {
+                            self.toggle_float();
                         }
                     }
                 }

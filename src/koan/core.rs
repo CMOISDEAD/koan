@@ -1,9 +1,9 @@
 use super::layouts::LAYOUTS;
 use super::monitors::Monitor;
-use super::window::Window;
+use super::window::{Client, Window};
 use super::{config::KEY_BINDINGS, error::KoanWMError};
 
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::mem::zeroed;
 use std::ptr::null;
 use x11::xlib;
@@ -21,23 +21,25 @@ extern "C" fn x_error_handler(_: *mut xlib::Display, ev: *mut xlib::XErrorEvent)
 }
 
 pub struct KoanWM {
-    pub layout: LAYOUTS,
     pub mfact: f32,
-    pub monitors: Vec<Monitor>,
-    pub current_monitor: usize,
+    pub layout: LAYOUTS,
     pub display: *mut xlib::Display,
 
-    pub windows: Vec<Window>,
+    pub monitors: Vec<Monitor>,
+    pub current_monitor: usize,
+
+    pub clients: Vec<Client>,
+    pub focused: Option<Window>,
     pub window_monitors: HashMap<Window, usize>, // window, monitor_idx
 
-    pub focused: Option<Window>,
-
-    pub modelines: Vec<xlib::Window>,
     pub gc: xlib::GC, // Contexto gráfico para dibujar
+    pub modelines: Vec<xlib::Window>,
 
     // atoms
     pub wm_protocols: xlib::Atom,
     pub wm_delete: xlib::Atom,
+    pub wm_state: xlib::Atom,
+    pub wm_state_above: xlib::Atom,
 }
 
 impl KoanWM {
@@ -53,12 +55,15 @@ impl KoanWM {
             let wm_protocols = xlib::XInternAtom(display, "WM_PROTOCOLS\0".as_ptr() as *const _, 0);
             let wm_delete =
                 xlib::XInternAtom(display, "WM_DELETE_WINDOW\0".as_ptr() as *const _, 0);
+            let wm_state = xlib::XInternAtom(display, "_NET_WM_STATE\0".as_ptr() as *const _, 0);
+            let wm_state_above =
+                xlib::XInternAtom(display, "_NET_WM_STATE_ABOVE\0".as_ptr() as *const _, 0);
 
             Ok(Self {
                 layout: LAYOUTS::MONOCLE,
                 mfact: 0.5,
                 display,
-                windows: Vec::new(),
+                clients: Vec::new(),
                 window_monitors: HashMap::new(),
                 focused: None,
                 monitors: Vec::new(),
@@ -67,6 +72,8 @@ impl KoanWM {
                 gc: std::ptr::null_mut(),
                 wm_protocols,
                 wm_delete,
+                wm_state,
+                wm_state_above,
             })
         }
     }

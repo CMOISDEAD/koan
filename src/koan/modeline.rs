@@ -1,9 +1,8 @@
 use std::{ffi::CString, thread, time::Duration};
 
 use super::{
-    KoanWM, Window,
     config::{Color, MODELINE_HEIGHT, MODELINE_UPDATE_TIME, MODULES},
-    get_pixel_from_color,
+    get_pixel_from_color, KoanWM, Window,
 };
 use x11::xlib;
 

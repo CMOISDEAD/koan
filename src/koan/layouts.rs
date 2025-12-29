@@ -1,8 +1,11 @@
 use x11::xlib;
 
-use crate::koan::{BORDER_WIDTH, KoanWM, KoanWMError, Window};
+use crate::koan::{KoanWM, KoanWMError, Window, BORDER_WIDTH};
 
-use super::config::{GAPS, MODELINE_HEIGHT};
+use super::{
+    config::{GAPS, MODELINE_HEIGHT},
+    window::Client,
+};
 
 pub enum LAYOUTS {
     MASTER,
@@ -34,20 +37,20 @@ impl KoanWM {
 
     pub fn monocle(&mut self, top: i32, bottom: u32) {
         for (mon_idx, mon) in self.monitors.iter().enumerate() {
-            let mon_windows: Vec<Window> = self
-                .windows
+            let mon_windows: Vec<&Client> = self
+                .clients
                 .iter()
-                .filter(|&w| self.window_monitors.get(w) == Some(&mon_idx))
-                .copied()
+                .filter(|c| !c.is_float)
+                .filter(|c| self.window_monitors.get(&c.window) == Some(&mon_idx))
                 .collect();
 
             if mon_windows.is_empty() {
                 continue;
             }
 
-            for win in mon_windows {
+            for client in mon_windows {
                 self.apply_geometry(
-                    win,
+                    client.window,
                     mon.x + GAPS as i32,
                     mon.y + top,
                     mon.width as u32 - (GAPS * 2),
@@ -59,11 +62,11 @@ impl KoanWM {
 
     pub fn master_and_stack(&mut self, top: i32, bottom: u32) {
         for (mon_idx, mon) in self.monitors.iter().enumerate() {
-            let mon_windows: Vec<Window> = self
-                .windows
+            let mon_windows: Vec<&Client> = self
+                .clients
                 .iter()
-                .filter(|&w| self.window_monitors.get(w) == Some(&mon_idx))
-                .copied()
+                .filter(|c| !c.is_float)
+                .filter(|&c| self.window_monitors.get(&c.window) == Some(&mon_idx))
                 .collect();
 
             let n = mon_windows.len();
@@ -74,7 +77,7 @@ impl KoanWM {
 
             if n == 1 {
                 self.apply_geometry(
-                    mon_windows[0],
+                    mon_windows[0].window,
                     mon.x + GAPS as i32,
                     mon.y + top,
                     mon.width as u32 - (GAPS * 2),
@@ -84,7 +87,7 @@ impl KoanWM {
                 let master_w_raw = (mon.width as f32 * self.mfact) as u32;
 
                 self.apply_geometry(
-                    mon_windows[0],
+                    mon_windows[0].window,
                     mon.x + GAPS as i32,
                     mon.y + top,
                     master_w_raw - (GAPS * 2),
@@ -95,13 +98,13 @@ impl KoanWM {
                 let stack_w_raw = mon.width as u32 - master_w_raw;
                 let stack_h_total = mon.height as u32 / (n as u32 - 1);
 
-                for (i, &win) in mon_windows.iter().skip(1).enumerate() {
+                for (i, &client) in mon_windows.iter().skip(1).enumerate() {
                     let stack_y = mon.y + (i as i32 * stack_h_total as i32);
 
                     let height_adjustment = if i == (n - 1) - 1 { bottom } else { GAPS * 2 };
 
                     self.apply_geometry(
-                        win,
+                        client.window,
                         stack_x + (GAPS / 2) as i32,
                         stack_y + top as i32,
                         stack_w_raw - GAPS - (GAPS / 2),
@@ -119,6 +122,15 @@ impl KoanWM {
         match self.layout {
             LAYOUTS::MASTER => self.master_and_stack(top, bottom),
             LAYOUTS::MONOCLE => self.monocle(top, bottom),
+        }
+
+        for client in self.clients.iter().filter(|c| c.is_float) {
+            if self.window_monitors.get(&client.window) == Some(&self.current_monitor) {
+                unsafe {
+                    self.center_window(client.window);
+                    xlib::XRaiseWindow(self.display, client.window);
+                }
+            }
         }
 
         Ok(())

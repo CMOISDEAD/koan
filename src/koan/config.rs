@@ -1,5 +1,5 @@
 use super::modeline::{Module, ModuleType};
-use x11::keysym::{XK_Return, XK_Tab, XK_c, XK_comma, XK_d, XK_j, XK_k, XK_period, XK_q};
+use x11::keysym::{XK_Return, XK_Tab, XK_c, XK_comma, XK_d, XK_j, XK_k, XK_period, XK_q, XK_space};
 use x11::xlib::{ControlMask, Mod1Mask, ShiftMask};
 
 #[allow(dead_code)]
@@ -13,7 +13,7 @@ impl Color {
     pub fn hex(self) -> &'static str {
         match self {
             Color::Primary => "#00ff00",
-            Color::Secondary => "#888888",
+            Color::Secondary => "#000000",
             Color::Error => "#ff5555",
         }
     }
@@ -31,10 +31,11 @@ pub enum Action {
     MonitorPrev,
     SwapWindowNext,
     SwapWindowPrev,
-    IcreaseSize,
+    IncreaseSize,
     DecreaseSize,
     MoveWindowToNextMonitor,
     MoveWindowToPrevMonitor,
+    ToggleFloat,
     CloseWindow,
 }
 
@@ -86,7 +87,7 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
     KeyBinding {
         keysym: XK_j,
         modifiers: (MOD_KEY | ControlMask) as u32,
-        action: Action::IcreaseSize,
+        action: Action::IncreaseSize,
     },
     KeyBinding {
         keysym: XK_k,
@@ -119,12 +120,18 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
         action: Action::CloseWindow,
     },
     KeyBinding {
+        keysym: XK_space,
+        modifiers: MOD_KEY as u32,
+        action: Action::ToggleFloat,
+    },
+    KeyBinding {
         keysym: XK_q,
         modifiers: (MOD_KEY | ShiftMask) as u32,
         action: Action::QuitWM,
     },
 ];
 
+pub const CURSOR_ENTER_FOCUS: bool = false;
 pub const MODELINE_UPDATE_TIME: u64 = 5;
 pub const MODELINE_HEIGHT: u32 = 10;
 pub const BORDER_WIDTH: u32 = 1;
@@ -136,13 +143,13 @@ pub struct AppCommand {
 }
 
 pub const TERMINAL: AppCommand = AppCommand {
-    program: "alacritty",
+    program: "xterm",
     args: &[],
 };
 
 pub const LAUNCHER: AppCommand = AppCommand {
-    program: "rofi",
-    args: &["-show", "drun"],
+    program: "dmenu_run",
+    args: &[],
 };
 
 pub const AUTO_START: &[AppCommand] = &[
@@ -162,7 +169,7 @@ pub const AUTO_START: &[AppCommand] = &[
 
 pub static MODULES: &[Module] = &[
     Module {
-        kind: ModuleType::WindowTitle
+        kind: ModuleType::WindowTitle,
     },
     Module {
         kind: ModuleType::Clock,

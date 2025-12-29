@@ -77,15 +77,14 @@ impl KoanWM {
             xlib::XFlush(self.display);
         }
 
-        let last_win = self
-            .windows
+        let last_client = self
+            .clients
             .iter()
-            .filter(|&w| self.window_monitors.get(w) == Some(&index))
-            .last()
-            .copied();
+            .filter(|&c| self.window_monitors.get(&c.window) == Some(&index))
+            .last();
 
-        if let Some(win) = last_win {
-            self.focus_window(win);
+        if let Some(client) = last_client {
+            self.focus_window(client.window);
         } else {
             self.focused = None;
         }
