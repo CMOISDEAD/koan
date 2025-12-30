@@ -3,6 +3,7 @@ use x11::xlib;
 use super::{
     config::{CURSOR_ENTER_FOCUS, LAUNCHER, TERMINAL},
     utils::spawn,
+    window::Direction,
     Action, KoanWM, KoanWMError, Window, KEY_BINDINGS,
 };
 
@@ -84,8 +85,14 @@ impl KoanWM {
                                 self.send_delete(win)?;
                             }
                         }
-                        Action::FocusPrev => self.cycle_focus(false),
-                        Action::FocusNext => self.cycle_focus(true),
+                        Action::FocusUp => {
+                            println!("up")
+                        }
+                        Action::FocusDown => {
+                            println!("down")
+                        }
+                        Action::FocusRight => self.cycle_focus(true),
+                        Action::FocusLeft => self.cycle_focus(false),
                         Action::MonitorPrev => {
                             let _ = self.monitor_prev();
                         }
@@ -98,17 +105,91 @@ impl KoanWM {
                         Action::MoveWindowToPrevMonitor => {
                             let _ = self.move_window_prev_monitor();
                         }
-                        Action::SwapWindowNext => {
-                            let _ = self.swap_window(true);
+                        Action::MoveUp => {
+                            let client = match self.focused_client() {
+                                Some(c) => c,
+                                None => return Ok(()),
+                            };
+
+                            if client.is_float {
+                                self.move_window(Direction::Up);
+                            } else {
+                                // self.swap_window(true);
+                            }
                         }
-                        Action::SwapWindowPrev => {
-                            let _ = self.swap_window(false);
+                        Action::MoveDown => {
+                            let client = match self.focused_client() {
+                                Some(c) => c,
+                                None => return Ok(()),
+                            };
+
+                            if client.is_float {
+                                self.move_window(Direction::Down);
+                            } else {
+                                // self.swap_window(true);
+                            }
                         }
-                        Action::IncreaseSize => {
-                            self.change_split_ratio(true);
+                        Action::MoveRight => {
+                            let client = match self.focused_client() {
+                                Some(c) => c,
+                                None => return Ok(()),
+                            };
+
+                            if client.is_float {
+                                self.move_window(Direction::Right);
+                            } else {
+                                self.swap_window(true);
+                            }
                         }
-                        Action::DecreaseSize => {
-                            self.change_split_ratio(false);
+                        Action::MoveLeft => {
+                            let client = match self.focused_client() {
+                                Some(c) => c,
+                                None => return Ok(()),
+                            };
+
+                            if client.is_float {
+                                self.move_window(Direction::Left);
+                            } else {
+                                self.swap_window(false);
+                            }
+                        }
+                        Action::IncreaseHeight => {
+                            let client = match self.focused_client() {
+                                Some(c) => c,
+                                None => return Ok(()),
+                            };
+
+                            if client.is_float {
+                                self.resize_window(Direction::Down);
+                            } else {
+                                self.change_split_ratio(true);
+                            }
+                        }
+                        Action::DecreaseHeight => {
+                            let client = match self.focused_client() {
+                                Some(c) => c,
+                                None => return Ok(()),
+                            };
+
+                            if client.is_float {
+                                self.resize_window(Direction::Up);
+                            } else {
+                                self.change_split_ratio(false);
+                            }
+                        }
+                        Action::IncreaseWidth => {
+                            if let Some(client) = self.focused_client() {
+                                if client.is_float {
+                                    self.resize_window(Direction::Right);
+                                }
+                            }
+                        }
+                        Action::DecreaseWidth => {
+                            if let Some(client) = self.focused_client() {
+                                if client.is_float {
+                                    self.resize_window(Direction::Left);
+                                }
+                            }
                         }
                         Action::ToggleFloat => {
                             self.toggle_float();

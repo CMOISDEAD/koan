@@ -4,6 +4,14 @@ use crate::koan::{get_pixel_from_color, KoanWM, KoanWMError, BORDER_WIDTH};
 
 use super::{config::Color, layouts::LAYOUTS};
 
+#[derive(Copy, Clone)]
+pub enum Direction {
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
 pub type Window = u64;
 
 pub struct Client {
@@ -240,33 +248,56 @@ impl KoanWM {
         }
     }
 
-    pub fn _move_window(&self, window: Window, x: i32, y: i32) {
-        unsafe { xlib::XMoveWindow(self.display, window, x, y) };
-    }
-
-    pub fn _resize_window(&mut self, increase: bool) {
+    pub fn move_window(&mut self, dir: Direction) {
         let focused = match self.focused {
             Some(w) => w,
             None => return,
         };
 
-        let client = match self.clients.iter().find(|c| c.window == focused) {
-            Some(c) => c,
+        let geometry = match self.get_window_geometry(focused) {
+            Some(g) => g,
             None => return,
         };
 
-        if client.is_float {
-            if let Some(attr) = self._get_window_geometry(focused) {
-                let change = if increase { 20 } else { -20 };
-                let new_w = (attr.width as i32 + change).max(50) as u32;
-                let new_h = (attr.height as i32 + change).max(50) as u32;
+        let step = 5;
 
-                unsafe {
-                    xlib::XResizeWindow(self.display, focused, new_w, new_h);
-                }
-            }
-        } else {
-            self.change_split_ratio(increase);
+        let (dx, dy) = match dir {
+            Direction::Left => (-step, 0),
+            Direction::Right => (step, 0),
+            Direction::Up => (0, -step),
+            Direction::Down => (0, step),
+        };
+
+        unsafe { xlib::XMoveWindow(self.display, focused, geometry.x + dx, geometry.y + dy) };
+    }
+
+    pub fn resize_window(&mut self, dir: Direction) {
+        let focused = match self.focused {
+            Some(w) => w,
+            None => return,
+        };
+
+        let geometry = match self.get_window_geometry(focused) {
+            Some(g) => g,
+            None => return,
+        };
+
+        let step = 5;
+
+        let (dw, dh) = match dir {
+            Direction::Left => (-step, 0),
+            Direction::Right => (step, 0),
+            Direction::Up => (0, -step),
+            Direction::Down => (0, step),
+        };
+
+        unsafe {
+            xlib::XResizeWindow(
+                self.display,
+                focused,
+                (geometry.width + dw) as u32,
+                (geometry.height + dh) as u32,
+            );
         }
     }
 
@@ -397,7 +428,7 @@ impl KoanWM {
         }
     }
 
-    pub fn _get_window_geometry(&self, window: xlib::Window) -> Option<xlib::XWindowAttributes> {
+    pub fn get_window_geometry(&self, window: xlib::Window) -> Option<xlib::XWindowAttributes> {
         unsafe {
             let mut attrs: xlib::XWindowAttributes = std::mem::zeroed();
             if xlib::XGetWindowAttributes(self.display, window, &mut attrs) != 0 {
@@ -406,6 +437,11 @@ impl KoanWM {
                 None
             }
         }
+    }
+
+    pub fn focused_client(&self) -> Option<&Client> {
+        let focused = self.focused?;
+        self.clients.iter().find(|c| c.window == focused)
     }
 
     pub fn _is_floating(&mut self, _window: Window) -> bool {

@@ -1,5 +1,7 @@
 use super::modeline::{Module, ModuleType};
-use x11::keysym::{XK_Return, XK_Tab, XK_c, XK_comma, XK_d, XK_j, XK_k, XK_period, XK_q, XK_space};
+use x11::keysym::{
+    XK_Return, XK_Tab, XK_c, XK_comma, XK_d, XK_h, XK_j, XK_k, XK_l, XK_period, XK_q, XK_space,
+};
 use x11::xlib::{ControlMask, Mod1Mask, ShiftMask};
 
 #[allow(dead_code)]
@@ -25,14 +27,20 @@ pub enum Action {
     OpenLauncher,
     OpenTerminal,
     QuitWM,
-    FocusNext,
-    FocusPrev,
+    FocusUp,
+    FocusDown,
+    FocusRight,
+    FocusLeft,
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight,
     MonitorNext,
     MonitorPrev,
-    SwapWindowNext,
-    SwapWindowPrev,
-    IncreaseSize,
-    DecreaseSize,
+    IncreaseHeight,
+    DecreaseHeight,
+    IncreaseWidth,
+    DecreaseWidth,
     MoveWindowToNextMonitor,
     MoveWindowToPrevMonitor,
     ToggleFloat,
@@ -64,36 +72,70 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
         modifiers: MOD_KEY as u32,
         action: Action::OpenLauncher,
     },
-    KeyBinding {
-        keysym: XK_j,
-        modifiers: MOD_KEY as u32,
-        action: Action::FocusNext,
-    },
+    // Focus - MOD + hjkl (navegación)
     KeyBinding {
         keysym: XK_k,
         modifiers: MOD_KEY as u32,
-        action: Action::FocusPrev,
+        action: Action::FocusUp,
+    },
+    KeyBinding {
+        keysym: XK_j,
+        modifiers: MOD_KEY as u32,
+        action: Action::FocusDown,
+    },
+    KeyBinding {
+        keysym: XK_l,
+        modifiers: MOD_KEY as u32,
+        action: Action::FocusRight,
+    },
+    KeyBinding {
+        keysym: XK_h,
+        modifiers: MOD_KEY as u32,
+        action: Action::FocusLeft,
+    },
+    // Move/Swap - MOD + Shift + hjkl (mover float o swap en layout)
+    KeyBinding {
+        keysym: XK_k,
+        modifiers: (MOD_KEY | ShiftMask) as u32,
+        action: Action::MoveUp,
     },
     KeyBinding {
         keysym: XK_j,
         modifiers: (MOD_KEY | ShiftMask) as u32,
-        action: Action::SwapWindowNext,
+        action: Action::MoveDown,
     },
     KeyBinding {
-        keysym: XK_k,
+        keysym: XK_l,
         modifiers: (MOD_KEY | ShiftMask) as u32,
-        action: Action::SwapWindowPrev,
+        action: Action::MoveRight,
     },
+    KeyBinding {
+        keysym: XK_h,
+        modifiers: (MOD_KEY | ShiftMask) as u32,
+        action: Action::MoveLeft,
+    },
+    // Resize - MOD + Control + hjkl
     KeyBinding {
         keysym: XK_j,
         modifiers: (MOD_KEY | ControlMask) as u32,
-        action: Action::IncreaseSize,
+        action: Action::IncreaseHeight,
     },
     KeyBinding {
         keysym: XK_k,
         modifiers: (MOD_KEY | ControlMask) as u32,
-        action: Action::DecreaseSize,
+        action: Action::DecreaseHeight,
     },
+    KeyBinding {
+        keysym: XK_h,
+        modifiers: (MOD_KEY | ControlMask) as u32,
+        action: Action::DecreaseWidth,
+    },
+    KeyBinding {
+        keysym: XK_l,
+        modifiers: (MOD_KEY | ControlMask) as u32,
+        action: Action::IncreaseWidth,
+    },
+    // Monitor navigation - MOD + comma/period
     KeyBinding {
         keysym: XK_comma,
         modifiers: MOD_KEY as u32,
@@ -104,6 +146,7 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
         modifiers: MOD_KEY as u32,
         action: Action::MonitorNext,
     },
+    // Move window to monitor - MOD + Shift + comma/period
     KeyBinding {
         keysym: XK_comma,
         modifiers: (MOD_KEY | ShiftMask) as u32,
