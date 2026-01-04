@@ -203,7 +203,7 @@ impl KoanWM {
         }
 
         self.set_border_color(window, Color::Primary.hex());
-        self.update_modeline();
+        self.update_modelines();
     }
 
     pub fn swap_window(&mut self, next: bool) {
@@ -447,5 +447,37 @@ impl KoanWM {
     pub fn _is_floating(&mut self, _window: Window) -> bool {
         true
         // if xlib::XGetWindowProperty(self.display, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+    }
+
+    pub fn get_window_title(&self, window: Window) -> String {
+        unsafe {
+            let mut name_ptr: *mut i8 = std::ptr::null_mut();
+            if xlib::XFetchName(self.display, window, &mut name_ptr) != 0 && !name_ptr.is_null() {
+                let c_str = std::ffi::CStr::from_ptr(name_ptr);
+                let title = c_str.to_string_lossy().into_owned();
+                xlib::XFree(name_ptr as *mut _);
+                title
+            } else {
+                "No Name".to_string()
+            }
+        }
+    }
+
+    pub fn get_focus_title(&self) -> String {
+        let focused = match self.focused {
+            Some(w) => w,
+            None => return String::from("Empty"),
+        };
+        unsafe {
+            let mut name_ptr: *mut i8 = std::ptr::null_mut();
+            if xlib::XFetchName(self.display, focused, &mut name_ptr) != 0 && !name_ptr.is_null() {
+                let c_str = std::ffi::CStr::from_ptr(name_ptr);
+                let title = c_str.to_string_lossy().into_owned();
+                xlib::XFree(name_ptr as *mut _);
+                title
+            } else {
+                "No Name".to_string()
+            }
+        }
     }
 }

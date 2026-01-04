@@ -26,11 +26,3 @@ CLOSED: [2025-12-28 Sun 02:07]
     1. [X] datetime.
     2. [X] window title.
 * TODO *HARD* implement own which key viewer with input support.
-
-
-* Journal
-
-1. rename main state variable names.
-1. test floating windows.
-2. implement movement and resizing via keyboard.
-3. remove mouse focus.

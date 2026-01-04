@@ -1,4 +1,5 @@
 use super::layouts::LAYOUTS;
+use super::modeline::Module;
 use super::monitors::Monitor;
 use super::window::{Client, Window};
 use super::{config::KEY_BINDINGS, error::KoanWMError};
@@ -33,7 +34,8 @@ pub struct KoanWM {
     pub window_monitors: HashMap<Window, usize>, // window, monitor_idx
 
     pub gc: xlib::GC, // Contexto gráfico para dibujar
-    pub modelines: Vec<xlib::Window>,
+    pub modelines: Vec<Window>,
+    pub modules: Vec<Module>,
 
     // atoms
     pub wm_protocols: xlib::Atom,
@@ -68,8 +70,9 @@ impl KoanWM {
                 focused: None,
                 monitors: Vec::new(),
                 current_monitor: 0,
-                modelines: Vec::new(),
                 gc: std::ptr::null_mut(),
+                modelines: Vec::new(),
+                modules: Vec::new(),
                 wm_protocols,
                 wm_delete,
                 wm_state,
@@ -93,7 +96,7 @@ impl KoanWM {
 
             self.update_monitors();
             self.exec_autostart();
-            self.create_modeline();
+            self.create_modelines();
             self.spawn_modeline_timer();
 
             xlib::XUngrabKey(self.display, xlib::AnyKey, xlib::AnyModifier, root);
@@ -132,20 +135,20 @@ impl KoanWM {
                         );
 
                         if ev.message_type == update_atom {
-                            self.update_modeline();
+                            self.update_modelines();
                         }
                     }
                     xlib::Expose => {
                         let ev = xlib::XExposeEvent::from(event);
                         if self.modelines.contains(&ev.window) {
-                            self.update_modeline();
+                            self.update_modelines();
                         }
                     }
                     xlib::ConfigureNotify => {
                         let ev = xlib::XConfigureEvent::from(event);
                         let root = xlib::XDefaultRootWindow(self.display);
                         if ev.window == root {
-                            self.create_modeline();
+                            self.create_modelines();
                             self.update_monitors();
                             self.layout()?;
                         }

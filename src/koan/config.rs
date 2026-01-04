@@ -1,4 +1,3 @@
-use super::modeline::{Module, ModuleType};
 use x11::keysym::{
     XK_Return, XK_Tab, XK_c, XK_comma, XK_d, XK_h, XK_j, XK_k, XK_l, XK_period, XK_q, XK_space,
 };
@@ -176,7 +175,7 @@ pub const KEY_BINDINGS: &[KeyBinding] = &[
 
 pub const CURSOR_ENTER_FOCUS: bool = false;
 pub const MODELINE_UPDATE_TIME: u64 = 5;
-pub const MODELINE_HEIGHT: u32 = 10;
+pub const MODELINE_HEIGHT: u32 = 15;
 pub const BORDER_WIDTH: u32 = 1;
 pub const GAPS: u32 = 4;
 
@@ -208,13 +207,4 @@ pub const AUTO_START: &[AppCommand] = &[
     //     program: "emacs",
     //     args: &["--daemon"],
     // },
-];
-
-pub static MODULES: &[Module] = &[
-    Module {
-        kind: ModuleType::WindowTitle,
-    },
-    Module {
-        kind: ModuleType::Clock,
-    },
 ];
